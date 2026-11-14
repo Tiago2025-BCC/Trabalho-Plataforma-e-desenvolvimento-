@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Vendinha.ObjetosTransferencia;
 using Vendinha.Servico;
@@ -19,7 +20,7 @@ namespace Vendinha.Controladores
         [HttpPost]
         public ActionResult<ClienteRespostaDto> Criar(ClienteCriarDto dto)
         {
-            var erro = ValidarDados(dto.NomeCompleto, dto.CPF, dto.DataNascimento);
+            var erro = ValidarDados(dto.NomeCompleto, dto.CPF, dto.DataNascimento, dto.Email);
             if (erro != null)
                 return BadRequest(new { erro });
 
@@ -32,9 +33,12 @@ namespace Vendinha.Controladores
         }
 
         [HttpGet]
-        public ActionResult<List<ClienteRespostaDto>> Listar()
+        public ActionResult<PaginaRespostaDto<ClienteRespostaDto>> Listar([FromQuery] string? busca, [FromQuery] int pagina = 1)
         {
-            return Ok(_servico.ListarClientes());
+            if (pagina < 1)
+                return BadRequest(new { erro = "A página deve ser maior ou igual a 1." });
+
+            return Ok(_servico.ListarClientes(busca, pagina));
         }
 
         [HttpGet("{id}")]
@@ -51,7 +55,7 @@ namespace Vendinha.Controladores
         [HttpPut("{id}")]
         public ActionResult<ClienteRespostaDto> Atualizar(int id, ClienteAtualizarDto dto)
         {
-            var erro = ValidarDados(dto.NomeCompleto, dto.CPF, dto.DataNascimento);
+            var erro = ValidarDados(dto.NomeCompleto, dto.CPF, dto.DataNascimento, dto.Email);
             if (erro != null)
                 return BadRequest(new { erro });
 
@@ -77,7 +81,7 @@ namespace Vendinha.Controladores
             return NoContent();
         }
 
-        private static string? ValidarDados(string nome, string cpf, DateOnly dataNascimento)
+        private static string? ValidarDados(string nome, string cpf, DateOnly dataNascimento, string? email)
         {
             if (string.IsNullOrWhiteSpace(nome))
                 return "O nome completo é obrigatório.";
@@ -85,10 +89,21 @@ namespace Vendinha.Controladores
             if (!ValidadorCpf.EhValido(cpf))
                 return "CPF inválido.";
 
+            if (dataNascimento == default)
+                return "A data de nascimento é obrigatória.";
+
             if (dataNascimento > DateOnly.FromDateTime(DateTime.Today))
                 return "A data de nascimento não pode ser no futuro.";
 
+            if (!string.IsNullOrWhiteSpace(email) && !EmailValido(email))
+                return "E-mail inválido.";
+
             return null;
+        }
+
+        private static bool EmailValido(string email)
+        {
+            return Regex.IsMatch(email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
         }
     }
 }

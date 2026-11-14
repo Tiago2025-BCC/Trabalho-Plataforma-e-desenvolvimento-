@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Vendinha.Dados;
 using Vendinha.Modelos;
 using Vendinha.ObjetosTransferencia;
@@ -20,7 +21,7 @@ namespace Vendinha.Servico
                 NomeCompleto = dto.NomeCompleto.Trim(),
                 CPF = SomenteNumeros(dto.CPF),
                 DataNascimento = dto.DataNascimento.ToDateTime(TimeOnly.MinValue),
-                Email = dto.Email
+                Email = LimparEmail(dto.Email)
             };
 
             _contexto.Clientes.Add(cliente);
@@ -29,9 +30,17 @@ namespace Vendinha.Servico
             return MontarResposta(cliente, 0);
         }
 
-        public List<ClienteRespostaDto> ListarClientes()
+        public PaginaRespostaDto<ClienteRespostaDto> ListarClientes(string? busca, int pagina, int tamanhoPagina = 10)
         {
-            var clientes = _contexto.Clientes.ToList();
+            var consulta = _contexto.Clientes.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                var padrao = $"%{EscaparParaLike(busca.Trim())}%";
+                consulta = consulta.Where(c => EF.Functions.Like(c.NomeCompleto, padrao, "\\"));
+            }
+
+            var clientes = consulta.ToList();
 
             var totais = _contexto.Dividas
                 .Where(d => !d.Paga)
@@ -39,11 +48,29 @@ namespace Vendinha.Servico
                 .GroupBy(d => d.ClienteId)
                 .ToDictionary(g => g.Key, g => g.Sum(d => d.Valor));
 
-            return clientes.Select(cliente =>
+            var ordenados = clientes
+                .Select(cliente =>
+                {
+                    totais.TryGetValue(cliente.Id, out var total);
+                    return MontarResposta(cliente, total);
+                })
+                .OrderByDescending(c => c.TotalDividas)
+                .ThenBy(c => c.NomeCompleto, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            var itensDaPagina = ordenados
+                .Skip((pagina - 1) * tamanhoPagina)
+                .Take(tamanhoPagina)
+                .ToList();
+
+            return new PaginaRespostaDto<ClienteRespostaDto>
             {
-                totais.TryGetValue(cliente.Id, out var total);
-                return MontarResposta(cliente, total);
-            }).ToList();
+                Itens = itensDaPagina,
+                Pagina = pagina,
+                TamanhoPagina = tamanhoPagina,
+                TotalItens = ordenados.Count,
+                TotalPaginas = (int)Math.Ceiling(ordenados.Count / (double)tamanhoPagina)
+            };
         }
 
         public ClienteRespostaDto? BuscarCliente(int id)
@@ -70,7 +97,7 @@ namespace Vendinha.Servico
             cliente.NomeCompleto = dto.NomeCompleto.Trim();
             cliente.CPF = SomenteNumeros(dto.CPF);
             cliente.DataNascimento = dto.DataNascimento.ToDateTime(TimeOnly.MinValue);
-            cliente.Email = dto.Email;
+            cliente.Email = LimparEmail(dto.Email);
 
             _contexto.SaveChanges();
 
@@ -133,6 +160,19 @@ namespace Vendinha.Servico
             }
 
             return idade;
+        }
+
+        private static string EscaparParaLike(string texto)
+        {
+            return texto
+                .Replace("\\", "\\\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
+        }
+
+        private static string? LimparEmail(string? email)
+        {
+            return string.IsNullOrWhiteSpace(email) ? null : email.Trim();
         }
 
         private static string SomenteNumeros(string texto)
