@@ -1,0 +1,18 @@
+# Compilação
+bin/
+obj/
+
+# Visual Studio / editores
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Banco SQLite gerado ao rodar a aplicação (e arquivos auxiliares do modo WAL)
+*.db
+*.db-wal
+*.db-shm
+
+# Sistema operacional
+Thumbs.db
+.DS_Store
