@@ -9,6 +9,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ClienteServico>();
 
+builder.Services.AddScoped<DividaServico>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();

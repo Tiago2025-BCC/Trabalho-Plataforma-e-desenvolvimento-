@@ -19,6 +19,11 @@ namespace Vendinha.Dados
             modelBuilder.Entity<Cliente>()
                 .HasIndex(c => c.CPF)
                 .IsUnique();
+
+            modelBuilder.Entity<Divida>()
+                .HasIndex(d => d.ClienteId)
+                .IsUnique()
+                .HasFilter("\"Paga\" = 0");
         }
     }
 }
