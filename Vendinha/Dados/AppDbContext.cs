@@ -14,5 +14,11 @@ namespace Vendinha.Dados
 
         public DbSet<Divida> Dividas { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Cliente>()
+                .HasIndex(c => c.CPF)
+                .IsUnique();
+        }
     }
 }

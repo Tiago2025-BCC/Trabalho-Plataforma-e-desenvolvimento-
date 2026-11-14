@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Vendinha.Dados;
+using Vendinha.Servico;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=vendinha.db"));
+
+builder.Services.AddScoped<ClienteServico>();
 
 builder.Services.AddControllers();
 
