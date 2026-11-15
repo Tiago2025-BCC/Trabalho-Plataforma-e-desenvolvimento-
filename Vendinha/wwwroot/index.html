@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendinha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fundo:#eef3ef; --papel:#fff; --tinta:#16302a; --suave:#5d726b; --linha:#d5e0da;
+  --verde:#1f6f54; --verde-esc:#165240; --deve:#b45309; --deve-bg:#fdf1de; --ok-bg:#e1f1e8; --erro:#b3261e;
+  --titulo:"Bricolage Grotesque","Trebuchet MS",sans-serif; --corpo:"Figtree","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--tinta);font:16px/1.5 var(--corpo)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #f2b705;outline-offset:2px}
+
+.toldo{height:18px;background:repeating-linear-gradient(90deg,var(--verde) 0 32px,#fff 32px 64px);border-bottom:3px solid var(--verde-esc)}
+header{max-width:960px;margin:0 auto;padding:28px 20px 8px;display:flex;flex-wrap:wrap;gap:16px;align-items:end;justify-content:space-between}
+h1{font:800 clamp(2.4rem,7vw,3.6rem)/1 var(--titulo);margin:0;letter-spacing:-.03em;color:var(--verde-esc)}
+main{max-width:960px;margin:0 auto;padding:12px 20px 60px}
+
+.barra{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px}
+.barra input{flex:1 1 220px;padding:11px 14px;border:1.5px solid var(--linha);border-radius:10px;background:var(--papel)}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:600;cursor:pointer;background:var(--verde);color:#fff}
+.btn:hover{background:var(--verde-esc)}
+.btn.sec{background:transparent;color:var(--verde-esc);border:1.5px solid var(--verde)}
+.btn.sec:hover{background:var(--ok-bg)}
+.btn.perigo{background:transparent;color:var(--erro);border:1.5px solid var(--erro)}
+.btn.perigo.confirmar{background:var(--erro);color:#fff}
+.btn.peq{padding:7px 12px;font-size:.9rem}
+
+.lista{background:var(--papel);border:1.5px solid var(--linha);border-radius:14px;overflow:hidden}
+.linha{display:grid;grid-template-columns:1fr auto;gap:2px 16px;width:100%;padding:14px 18px;border:0;border-bottom:1px solid var(--linha);background:none;text-align:left;cursor:pointer}
+.linha:last-child{border-bottom:0}
+.linha:hover{background:#f6faf7}
+.linha b{font-weight:600}
+.linha small{color:var(--suave)}
+.valor{grid-row:span 2;align-self:center;text-align:right;font:800 1.15rem var(--titulo)}
+.valor.deve{color:var(--deve)}
+.valor.zero{color:var(--verde);font-weight:600;font-family:var(--corpo);font-size:.95rem}
+.vazio{padding:40px 20px;text-align:center;color:var(--suave)}
+.vazio .btn{margin-top:12px}
+.pag{display:flex;justify-content:space-between;align-items:center;margin-top:14px;color:var(--suave)}
+.pag div{display:flex;gap:8px}
+.btn:disabled{opacity:.4;cursor:default}
+
+dialog{width:min(560px,calc(100% - 24px));border:0;border-radius:16px;padding:0;background:var(--papel);color:var(--tinta);box-shadow:0 20px 60px rgba(22,48,42,.35)}
+dialog::backdrop{background:rgba(22,48,42,.45)}
+.dlg{padding:22px 24px 24px}
+.dlg h2{font:800 1.5rem/1.2 var(--titulo);margin:0 0 14px;letter-spacing:-.01em}
+.topo{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.fechar{border:0;background:none;font-size:1.6rem;line-height:1;cursor:pointer;color:var(--suave);padding:0 4px}
+label{display:block;margin:12px 0 4px;font-weight:600;font-size:.92rem}
+label span{font-weight:400;color:var(--suave)}
+.dlg input{width:100%;padding:10px 12px;border:1.5px solid var(--linha);border-radius:9px}
+.acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.erro{margin-top:12px;color:var(--erro);font-weight:500;min-height:1.2em}
+
+.dados{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 6px}
+.dados dt{color:var(--suave)} .dados dd{margin:0}
+h3{font:600 1.05rem var(--titulo);margin:22px 0 8px}
+.divida{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:8px;background:var(--deve-bg)}
+.divida.paga{background:var(--ok-bg)}
+.divida small{display:block;color:var(--suave)}
+.divida strong{font-family:var(--titulo)}
+.nova{display:flex;gap:10px;align-items:end}
+.nova div{flex:1}
+.nova label{margin-top:0}
+.aviso{color:var(--suave);font-size:.95rem;margin:0}
+
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--tinta);color:#fff;padding:11px 20px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="toldo" aria-hidden="true"></div>
+<header>
+  <div>
+    <h1>Vendinha</h1>
+  </div>
+  <button class="btn" id="novoCliente">Novo cliente</button>
+</header>
+
+<main>
+  <div class="barra">
+    <input id="busca" type="search" placeholder="Buscar cliente pelo nome" aria-label="Buscar cliente pelo nome">
+  </div>
+  <div class="lista" id="lista" aria-live="polite"></div>
+  <div class="pag" id="pag"></div>
+</main>
+
+<dialog id="dlgForm">
+  <form class="dlg" id="form" novalidate>
+    <div class="topo"><h2 id="formTitulo">Novo cliente</h2><button type="button" class="fechar" data-fechar aria-label="Fechar">&times;</button></div>
+    <label for="fNome">Nome completo</label>
+    <input id="fNome" autocomplete="off" required>
+    <label for="fCpf">CPF</label>
+    <input id="fCpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" autocomplete="off" required>
+    <label for="fNasc">Data de nascimento</label>
+    <input id="fNasc" type="date" required>
+    <label for="fEmail">E-mail <span>(opcional)</span></label>
+    <input id="fEmail" type="email" autocomplete="off">
+    <div class="erro" id="formErro" role="alert"></div>
+    <div class="acoes">
+      <button class="btn" type="submit">Salvar cliente</button>
+      <button class="btn sec" type="button" data-fechar>Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgCliente">
+  <div class="dlg" id="detalhe"></div>
+</dialog>
+
+<div id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const brl = n => Number(n).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cpfFmt = d => String(d).replace(/\D/g,'').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+const dataBr = iso => iso.slice(0,10).split('-').reverse().join('/');
+
+let busca = '', pagina = 1, editandoId = null, clienteAberto = null;
+
+async function api(caminho, opcoes = {}) {
+  let resp;
+  try {
+    resp = await fetch(caminho, {
+      ...opcoes,
+      headers: opcoes.body ? {'Content-Type':'application/json'} : undefined
+    });
+  } catch {
+    throw new Error('Não consegui falar com a API. Confira se o "dotnet run" está rodando.');
+  }
+  const texto = await resp.text();
+  const corpo = texto ? JSON.parse(texto) : null;
+  if (!resp.ok) throw new Error(corpo?.erro || corpo?.title || 'Algo deu errado (código ' + resp.status + ').');
+  return corpo;
+}
+
+function aviso(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(aviso.id);
+  aviso.id = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ---------- lista de clientes ---------- */
+async function carregar() {
+  const lista = $('#lista');
+  try {
+    const q = new URLSearchParams({pagina});
+    if (busca) q.set('busca', busca);
+    const r = await api('/clientes?' + q);
+
+    if (r.totalPaginas > 0 && pagina > r.totalPaginas) { pagina = r.totalPaginas; return carregar(); }
+
+    if (!r.itens.length) {
+      lista.innerHTML = busca
+        ? `<div class="vazio">Nenhum cliente com "${esc(busca)}" no nome.</div>`
+        : `<div class="vazio">Nenhum cliente cadastrado ainda.<br><button class="btn" id="vazioNovo">Cadastrar o primeiro cliente</button></div>`;
+      $('#vazioNovo')?.addEventListener('click', () => abrirForm());
+      $('#pag').innerHTML = '';
+      return;
+    }
+
+    lista.innerHTML = r.itens.map(c => `
+      <button class="linha" data-id="${c.id}">
+        <b>${esc(c.nomeCompleto)}</b>
+        <span class="valor ${c.totalDividas > 0 ? 'deve' : 'zero'}">${c.totalDividas > 0 ? brl(c.totalDividas) : 'Sem dívida'}</span>
+        <small>${cpfFmt(c.cpf)} &middot; ${c.idade} anos</small>
+      </button>`).join('');
+    lista.querySelectorAll('.linha').forEach(b => b.addEventListener('click', () => abrirCliente(b.dataset.id)));
+
+    $('#pag').innerHTML = `
+      <span>${r.totalItens} ${r.totalItens === 1 ? 'cliente' : 'clientes'}</span>
+      <div>
+        <button class="btn sec peq" id="ant" ${r.pagina <= 1 ? 'disabled' : ''}>Anterior</button>
+        <span style="align-self:center">Página ${r.pagina} de ${r.totalPaginas}</span>
+        <button class="btn sec peq" id="prox" ${r.pagina >= r.totalPaginas ? 'disabled' : ''}>Próxima</button>
+      </div>`;
+    $('#ant').onclick = () => { pagina--; carregar(); };
+    $('#prox').onclick = () => { pagina++; carregar(); };
+  } catch (e) {
+    lista.innerHTML = `<div class="vazio">${esc(e.message)}</div>`;
+    $('#pag').innerHTML = '';
+  }
+}
+
+let atraso;
+$('#busca').addEventListener('input', e => {
+  clearTimeout(atraso);
+  atraso = setTimeout(() => { busca = e.target.value.trim(); pagina = 1; carregar(); }, 300);
+});
+
+/* ---------- formulário de cliente ---------- */
+$('#novoCliente').addEventListener('click', () => abrirForm());
+document.querySelectorAll('[data-fechar]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+$('#fCpf').addEventListener('input', e => {
+  const d = e.target.value.replace(/\D/g,'').slice(0,11);
+  e.target.value = d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+});
+
+function abrirForm(c = null) {
+  editandoId = c?.id ?? null;
+  $('#formTitulo').textContent = c ? 'Editar cliente' : 'Novo cliente';
+  $('#fNome').value = c?.nomeCompleto ?? '';
+  $('#fCpf').value = c ? cpfFmt(c.cpf) : '';
+  $('#fNasc').value = c?.dataNascimento ?? '';
+  $('#fEmail').value = c?.email ?? '';
+  $('#formErro').textContent = '';
+  $('#dlgForm').showModal();
+  $('#fNome').focus();
+}
+
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const corpo = {
+    nomeCompleto: $('#fNome').value.trim(),
+    cpf: $('#fCpf').value,
+    dataNascimento: $('#fNasc').value,
+    email: $('#fEmail').value.trim() || null
+  };
+  if (!corpo.dataNascimento) { $('#formErro').textContent = 'A data de nascimento é obrigatória.'; return; }
+  try {
+    const salvo = await api(editandoId ? '/clientes/' + editandoId : '/clientes',
+      {method: editandoId ? 'PUT' : 'POST', body: JSON.stringify(corpo)});
+    $('#dlgForm').close();
+    aviso(editandoId ? 'Cliente atualizado.' : 'Cliente cadastrado.');
+    await carregar();
+    if (clienteAberto && $('#dlgCliente').open) abrirCliente(salvo.id);
+  } catch (err) {
+    $('#formErro').textContent = err.message;
+  }
+});
+
+/* ---------- detalhe do cliente e dívidas ---------- */
+async function abrirCliente(id) {
+  const box = $('#detalhe');
+  try {
+    const [c, dividas] = await Promise.all([api('/clientes/' + id), api('/clientes/' + id + '/dividas')]);
+    clienteAberto = c;
+    const emAberto = dividas.some(d => !d.paga);
+    dividas.sort((a, b) => a.paga - b.paga || new Date(b.dataCriacao) - new Date(a.dataCriacao));
+
+    box.innerHTML = `
+      <div class="topo"><h2>${esc(c.nomeCompleto)}</h2><button class="fechar" id="x" aria-label="Fechar">&times;</button></div>
+      <dl class="dados">
+        <dt>CPF</dt><dd>${cpfFmt(c.cpf)}</dd>
+        <dt>Nascimento</dt><dd>${dataBr(c.dataNascimento)} (${c.idade} anos)</dd>
+        <dt>E-mail</dt><dd>${c.email ? esc(c.email) : 'Não informado'}</dd>
+        <dt>Deve agora</dt><dd><b>${brl(c.totalDividas)}</b></dd>
+      </dl>
+
+      <h3>Dívidas</h3>
+      ${dividas.length ? dividas.map(d => `
+        <div class="divida ${d.paga ? 'paga' : ''}">
+          <div>
+            <strong>${brl(d.valor)}</strong>
+            <small>${d.paga ? 'Paga em ' + new Date(d.dataPagamento).toLocaleDateString('pt-BR') : 'Criada em ' + new Date(d.dataCriacao).toLocaleDateString('pt-BR')}</small>
+          </div>
+          ${d.paga ? '' : `<button class="btn peq" data-pagar="${d.id}">Marcar como paga</button>`}
+        </div>`).join('') : '<p class="aviso">Este cliente ainda não tem dívidas.</p>'}
+
+      <h3>Nova dívida</h3>
+      ${emAberto
+        ? '<p class="aviso">Este cliente já tem uma dívida em aberto. Quando ela for paga, dá para registrar outra.</p>'
+        : `<form class="nova" id="novaDivida">
+             <div><label for="dValor">Valor (R$)</label><input id="dValor" type="number" step="0.01" min="0.01" required></div>
+             <button class="btn" type="submit">Registrar dívida</button>
+           </form>`}
+      <div class="erro" id="detErro" role="alert"></div>
+
+      <div class="acoes">
+        <button class="btn sec" id="editar">Editar dados</button>
+        <button class="btn perigo" id="excluir">Excluir cliente</button>
+      </div>`;
+
+    $('#x').onclick = () => $('#dlgCliente').close();
+    $('#editar').onclick = () => abrirForm(c);
+    box.querySelectorAll('[data-pagar]').forEach(b => b.onclick = () => agir(
+      () => api('/dividas/' + b.dataset.pagar + '/pagar', {method:'PUT'}), 'Dívida paga.', id));
+    $('#novaDivida')?.addEventListener('submit', ev => {
+      ev.preventDefault();
+      agir(() => api('/clientes/' + id + '/dividas', {method:'POST', body: JSON.stringify({valor: parseFloat($('#dValor').value)})}),
+        'Dívida registrada.', id);
+    });
+
+    // exclusão em dois cliques, para ninguém apagar por engano
+    const ex = $('#excluir');
+    ex.onclick = () => {
+      if (!ex.classList.contains('confirmar')) {
+        ex.classList.add('confirmar');
+        ex.textContent = 'Confirmar exclusão (apaga também as dívidas)';
+        return;
+      }
+      agir(async () => { await api('/clientes/' + id, {method:'DELETE'}); $('#dlgCliente').close(); }, 'Cliente excluído.', null);
+    };
+
+    if (!$('#dlgCliente').open) $('#dlgCliente').showModal();
+  } catch (e) {
+    aviso(e.message);
+  }
+}
+
+async function agir(acao, msg, reabrirId) {
+  try {
+    await acao();
+    aviso(msg);
+    if (reabrirId) { await abrirCliente(reabrirId); carregar(); }
+  } catch (e) {
+    const el = $('#detErro');
+    if (el) el.textContent = e.message; else aviso(e.message);
+  }
+}
+
+$('#dlgCliente').addEventListener('close', carregar);
+carregar();
+</script>
+</body>
+</html>
